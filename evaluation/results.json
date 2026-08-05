@@ -1,0 +1,194 @@
+{
+  "benchmark_name": "VibeMatch deterministic reliability benchmark",
+  "catalog": "data/songs.csv",
+  "catalog_size": 18,
+  "checks": [
+    {
+      "category": "recommendation",
+      "check_id": "profile-high-energy-pop",
+      "criteria": "top result is Sunrise City; retry=false; final strategy=balanced; final quality >= 0.85",
+      "details": {
+        "diversity_adjustments": [
+          "Deferred Night Drive Loop by Neon Echo because of the artist limit."
+        ],
+        "final_quality": 0.9014,
+        "final_strategy": "balanced",
+        "initial_quality": 0.9014,
+        "initial_strategy": "balanced",
+        "quality_change": 0.0,
+        "retry_triggered": false,
+        "top_recommendation": "Sunrise City",
+        "warnings": []
+      },
+      "input_summary": "{\"favorite_genre\": \"pop\", \"favorite_mood\": \"happy\", \"likes_acoustic\": false, \"priority\": \"energy\", \"target_danceability\": 0.85, \"target_energy\": 0.8, \"target_tempo_bpm\": 125}",
+      "passed": true,
+      "result": "Pass"
+    },
+    {
+      "category": "recommendation",
+      "check_id": "profile-chill-lofi",
+      "criteria": "top result is Midnight Coding; retry=false; final strategy=balanced; final quality >= 0.85",
+      "details": {
+        "diversity_adjustments": [
+          "Deferred Focus Flow by LoRoom because of the artist limit."
+        ],
+        "final_quality": 0.9042,
+        "final_strategy": "balanced",
+        "initial_quality": 0.9042,
+        "initial_strategy": "balanced",
+        "quality_change": 0.0,
+        "retry_triggered": false,
+        "top_recommendation": "Midnight Coding",
+        "warnings": []
+      },
+      "input_summary": "{\"favorite_genre\": \"lofi\", \"favorite_mood\": \"chill\", \"likes_acoustic\": true, \"priority\": \"balanced\", \"target_energy\": 0.4, \"target_valence\": 0.58}",
+      "passed": true,
+      "result": "Pass"
+    },
+    {
+      "category": "recommendation",
+      "check_id": "profile-deep-intense-rock",
+      "criteria": "top result is Storm Runner; retry=false; final strategy=balanced; final quality >= 0.85",
+      "details": {
+        "diversity_adjustments": [],
+        "final_quality": 0.9395,
+        "final_strategy": "balanced",
+        "initial_quality": 0.9395,
+        "initial_strategy": "balanced",
+        "quality_change": 0.0,
+        "retry_triggered": false,
+        "top_recommendation": "Storm Runner",
+        "warnings": []
+      },
+      "input_summary": "{\"favorite_genre\": \"rock\", \"favorite_mood\": \"intense\", \"likes_acoustic\": false, \"priority\": \"balanced\", \"target_energy\": 0.9}",
+      "passed": true,
+      "result": "Pass"
+    },
+    {
+      "category": "recommendation",
+      "check_id": "profile-conflicting-sad-workout",
+      "criteria": "top result is Blue Sunday; retry=true; final strategy=mood_first; final quality >= 0.85; final quality improves",
+      "details": {
+        "diversity_adjustments": [
+          "Deferred Night Drive Loop by Neon Echo because of the artist limit."
+        ],
+        "final_quality": 0.9029,
+        "final_strategy": "mood_first",
+        "initial_quality": 0.7076,
+        "initial_strategy": "balanced",
+        "quality_change": 0.1953,
+        "retry_triggered": true,
+        "top_recommendation": "Blue Sunday",
+        "warnings": []
+      },
+      "input_summary": "{\"favorite_genre\": \"pop\", \"favorite_mood\": \"melancholic\", \"likes_acoustic\": false, \"priority\": \"mood\", \"target_energy\": 0.9, \"target_valence\": 0.3}",
+      "passed": true,
+      "result": "Pass"
+    },
+    {
+      "category": "recommendation",
+      "check_id": "profile-custom-acoustic-jazz",
+      "criteria": "top result is Coffee Shop Stories; retry=false; final strategy=balanced; final quality >= 0.85",
+      "details": {
+        "diversity_adjustments": [],
+        "final_quality": 0.8782,
+        "final_strategy": "balanced",
+        "initial_quality": 0.8782,
+        "initial_strategy": "balanced",
+        "quality_change": 0.0,
+        "retry_triggered": false,
+        "top_recommendation": "Coffee Shop Stories",
+        "warnings": []
+      },
+      "input_summary": "{\"favorite_genre\": \"jazz\", \"favorite_mood\": \"chill\", \"likes_acoustic\": true, \"priority\": \"discovery\", \"target_energy\": 0.45}",
+      "passed": true,
+      "result": "Pass"
+    },
+    {
+      "category": "recommendation",
+      "check_id": "profile-missing-catalog-support",
+      "criteria": "top result is Concrete Crown; retry=false; final strategy=balanced; final quality >= 0.85; warning contains 'no exact genre match'",
+      "details": {
+        "diversity_adjustments": [],
+        "final_quality": 0.8956,
+        "final_strategy": "balanced",
+        "initial_quality": 0.8956,
+        "initial_strategy": "balanced",
+        "quality_change": 0.0,
+        "retry_triggered": false,
+        "top_recommendation": "Concrete Crown",
+        "warnings": [
+          "The catalog has no exact genre match for 'metal'.",
+          "The catalog has no exact mood match for 'angry'."
+        ]
+      },
+      "input_summary": "{\"favorite_genre\": \"metal\", \"favorite_mood\": \"angry\", \"likes_acoustic\": false, \"priority\": \"balanced\", \"target_energy\": 0.85}",
+      "passed": true,
+      "result": "Pass"
+    },
+    {
+      "category": "guardrail",
+      "check_id": "guardrail-invalid-energy",
+      "criteria": "Validation rejects the value with a readable range message",
+      "details": {
+        "exception": "ProfileValidationError",
+        "message": "target_energy must be between 0.0 and 1.0."
+      },
+      "input_summary": "Custom profile with target_energy=1.2",
+      "passed": true,
+      "result": "Pass"
+    },
+    {
+      "category": "guardrail",
+      "check_id": "guardrail-strict-catalog",
+      "criteria": "Strict mode rejects the catalog with a readable validation error",
+      "details": {
+        "exception": "CatalogValidationError",
+        "message": "Song catalog validation failed:\n- Row 3: energy must be between 0.0 and 1.0."
+      },
+      "input_summary": "Catalog with one valid row and one row with energy=1.5",
+      "passed": true,
+      "result": "Pass"
+    },
+    {
+      "category": "guardrail",
+      "check_id": "guardrail-lenient-catalog",
+      "criteria": "Lenient mode skips the malformed row and retains the valid row",
+      "details": {
+        "returned_titles": [
+          "Valid Song"
+        ],
+        "valid_rows_returned": 1
+      },
+      "input_summary": "Catalog with one valid row and one row with energy=1.5",
+      "passed": true,
+      "result": "Pass"
+    },
+    {
+      "category": "reliability",
+      "check_id": "reliability-deterministic-repeat",
+      "criteria": "Both structured outputs are identical",
+      "details": {
+        "identical": true,
+        "quality_score": 0.9014,
+        "top_recommendation": "Sunrise City"
+      },
+      "input_summary": "Run the high-energy-pop profile twice against the same catalog",
+      "passed": true,
+      "result": "Pass"
+    }
+  ],
+  "command": "python -m evaluation.run_evaluation",
+  "summary": {
+    "average_final_quality": 0.9036,
+    "average_initial_quality": 0.8711,
+    "average_quality_change": 0.0326,
+    "checks_passed": 10,
+    "checks_total": 10,
+    "corrective_retries_triggered": 1,
+    "guardrail_and_reliability_checks": 4,
+    "pass_rate": 1.0,
+    "recommendation_scenarios": 6,
+    "scenarios_improved_after_retry": 1
+  }
+}

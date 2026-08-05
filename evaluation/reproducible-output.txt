@@ -1,0 +1,23 @@
+$ python -m evaluation.run_evaluation
+Catalog: data/songs.csv (18 songs)
+Benchmark checks: 10/10 passed
+Pass rate: 100%
+Average initial quality: 0.8711
+Average final quality: 0.9036
+Corrective retries triggered: 1
+
+Check results:
+- profile-high-energy-pop: Pass
+- profile-chill-lofi: Pass
+- profile-deep-intense-rock: Pass
+- profile-conflicting-sad-workout: Pass
+- profile-custom-acoustic-jazz: Pass
+- profile-missing-catalog-support: Pass
+- guardrail-invalid-energy: Pass
+- guardrail-strict-catalog: Pass
+- guardrail-lenient-catalog: Pass
+- reliability-deterministic-repeat: Pass
+
+$ pytest -q
+..................                                                       [100%]
+18 passed

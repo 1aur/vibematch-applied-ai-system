@@ -59,6 +59,11 @@ vibematch-applied-ai-system/
 │   └── songs.csv
 ├── diagrams/
 │   └── vibematch-system-architecture.mmd
+├── evaluation/
+│   ├── reproducible-output.txt
+│   ├── results.json
+│   ├── results.md
+│   └── run_evaluation.py
 ├── logs/
 │   └── .gitkeep
 ├── src/
@@ -71,7 +76,13 @@ vibematch-applied-ai-system/
 │   ├── strategies.py
 │   └── validation.py
 ├── tests/
-│   └── test_recommender.py
+│   ├── test_agent.py
+│   ├── test_catalog_loading.py
+│   ├── test_cli.py
+│   ├── test_diversity.py
+│   ├── test_evaluator.py
+│   ├── test_recommender.py
+│   └── test_validation.py
 ├── model_card.md
 ├── pytest.ini
 ├── requirements.txt
@@ -169,7 +180,15 @@ Optional controls include:
 pytest
 ```
 
-### 7. Review runtime logs
+### 7. Run the reproducible reliability benchmark
+
+```bash
+python -m evaluation.run_evaluation
+```
+
+The command evaluates six recommendation scenarios plus four validation and reliability checks. It regenerates the machine-readable [`evaluation/results.json`](evaluation/results.json), the reviewer-friendly [`evaluation/results.md`](evaluation/results.md), and the captured command summary in [`evaluation/reproducible-output.txt`](evaluation/reproducible-output.txt).
+
+### 8. Review runtime logs
 
 ```bash
 tail -n 20 logs/vibematch.log
@@ -336,27 +355,53 @@ Profile and catalog data are checked before they enter the recommendation workfl
 
 ## Testing Summary
 
-### What worked
+### Reliability results
 
-- The original regression tests still confirm that matching pop and happy content ranks above a mismatched lofi song and that explanations are nonempty.
-- `pytest.ini` makes the `src` package importable during a standard `pytest` run.
-- All four built-in profiles execute successfully against the 18-song catalog.
-- The high-energy, chill-lofi, and intense-rock profiles pass the first reliability evaluation.
-- The conflicting sad-workout profile triggers the intended correction from `balanced` to `mood_first`, improving its quality score from `0.71` to `0.90`.
-- Custom CLI profiles, structured logging, diversity actions, and invalid-energy handling were manually verified.
+**18 out of 18 automated tests passed, and 10 out of 10 deterministic benchmark checks passed.** Across six recommendation scenarios, the average final quality score was `0.9036`. One scenario required a corrective rerank, improving from `0.7076` to `0.9029`; malformed profiles and catalog rows were handled through readable validation errors or explicit lenient recovery.
+
+The complete parseable evaluation is available in [`evaluation/results.md`](evaluation/results.md) and [`evaluation/results.json`](evaluation/results.json). Reproduce it with:
+
+```bash
+pytest -q
+python -m evaluation.run_evaluation
+```
+
+### Automated coverage
+
+The 18-test suite covers:
+
+- Original ranking and explanation behavior
+- User-profile normalization and invalid range handling
+- Safe boolean parsing
+- Required catalog headers
+- Strict and lenient malformed-row handling
+- Artist and genre diversity limits
+- Diversity-limit relaxation when necessary
+- Empty-result and missing-explanation evaluator behavior
+- Quality-score bounds
+- Strong-profile pass-through behavior
+- Conflicting-profile corrective reranking
+- Agent result serialization
+- Nonpositive top-k rejection
+- Safe CLI error output without a traceback
+
+### Benchmark findings
+
+- High-energy pop, chill lofi, and intense rock returned their expected first-ranked songs without correction.
+- The conflicting sad-workout profile switched from `balanced` to `mood_first`, moved `Blue Sunday` to first place, and improved its quality score.
+- A custom acoustic jazz profile returned `Coffee Shop Stories` first with a final quality score above `0.85`.
+- A profile requesting unsupported `metal` and `angry` labels still returned a stable ranking while explicitly warning that exact catalog support was missing.
+- Running the same profile twice produced identical structured output.
+- Strict catalog mode rejected malformed data; lenient mode skipped the invalid row and retained the valid one.
 
 ### What did not work initially
 
 - The original test setup required `PYTHONPATH=.` because plain `pytest` could not import `src`. Adding `pytest.ini` corrected the project-level import configuration.
 - The original balanced strategy underrepresented the user's mood priority in the conflicting profile. That failure became the main example used to design and verify the evaluator-driven corrective rerank.
 
-### Current testing limitation
-
-The automated suite currently contains two foundational regression tests. Most agent, validation, diversity, and reliability behavior has been exercised through reproducible command-line scenarios, but those behaviors still need broader automated unit and integration coverage. A later reliability phase can add threshold, malformed-catalog, retry-limit, and strategy-selection tests.
-
 ### What I learned from testing
 
-A recommendation system can produce technically valid output while still failing the user's most important intent. Testing therefore needs to examine behavior and quality signals, not only whether the program returns a list without crashing.
+A recommendation system can produce technically valid output while still failing the user's most important intent. Testing therefore needs to examine behavior, catalog support, determinism, safe failure handling, and quality signals, not only whether the program returns a list without crashing.
 
 ## Project Reflection
 
@@ -373,9 +418,9 @@ The required responsible-AI reflection about AI collaboration, helpful and flawe
 - Exact genre and mood labels cannot represent songs that span multiple styles or emotional states.
 - Heuristic quality thresholds may not align with every listener's subjective judgment.
 - The evaluator can retry only once and cannot add missing catalog content.
-- The current automated test suite does not yet cover every strategy, validation branch, and agent decision.
+- The expanded automated suite covers the main agent, evaluator, validation, diversity, catalog, and CLI paths, but it does not exhaust every strategy and threshold combination.
 
-Potential extensions include a larger catalog, learned ranking weights, natural-language preference parsing, collaborative filtering, persistent user feedback, expanded automated evaluation, and a graphical interface.
+Potential extensions include a larger catalog, learned ranking weights, natural-language preference parsing, collaborative filtering, persistent user feedback, broader threshold and strategy coverage, and a graphical interface.
 
 ## Responsible Use
 

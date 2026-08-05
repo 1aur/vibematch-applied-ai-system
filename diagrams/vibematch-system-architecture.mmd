@@ -1,0 +1,70 @@
+flowchart TD
+    %% VibeMatch Applied AI System architecture
+
+    subgraph Inputs[Inputs and Human Interaction]
+        H[User / developer]
+        CLI[Command-line interface<br/>src/main.py]
+        CSV[(Song catalog<br/>data/songs.csv)]
+    end
+
+    subgraph Safety[Validation and Safe Failure Handling]
+        PV[Profile validation<br/>src/validation.py]
+        CL[Catalog loading and row validation<br/>src/recommender.py + src/validation.py]
+        ERR[Readable error message<br/>safe nonzero exit]
+    end
+
+    subgraph Agentic[Bounded Agentic Workflow]
+        AG[RecommendationAgent<br/>src/agent.py]
+        PLAN[Plan initial strategy<br/>balanced or requested strategy]
+        STRAT[Scoring strategy registry<br/>src/strategies.py]
+        REC[Score and rank candidates<br/>src/recommender.py]
+        DIV[Diversity guardrail<br/>src/diversity.py]
+        EVAL[Reliability evaluator<br/>src/evaluator.py]
+        DEC{Quality sufficient?}
+        FIX[Choose corrective strategy<br/>based on user priority]
+        LIMIT[One-retry limit]
+    end
+
+    subgraph Outputs[Outputs and Observability]
+        OUT[Final top-k recommendations<br/>scores, reasons, quality summary]
+        LOG[(Runtime log<br/>logs/vibematch.log)]
+    end
+
+    subgraph Checks[Human and Testing Checks]
+        TEST[pytest regression tests<br/>ranking and explanation checks]
+        REVIEW[Human review<br/>recommendations, warnings, explanations, logs]
+    end
+
+    H -->|profile choices or custom preferences| CLI
+    CSV --> CL
+    CLI --> PV
+    CLI --> CL
+
+    PV -->|valid normalized profile| AG
+    CL -->|valid normalized catalog| AG
+    PV -->|invalid input| ERR
+    CL -->|invalid catalog| ERR
+    ERR --> H
+
+    AG --> PLAN
+    PLAN --> STRAT
+    STRAT --> REC
+    AG -->|profile and catalog| REC
+    REC -->|ranked candidate pool| DIV
+    DIV -->|diverse top-k list| EVAL
+    EVAL --> DEC
+
+    DEC -->|yes| OUT
+    DEC -->|no| LIMIT
+    LIMIT -->|retry not yet used| FIX
+    FIX --> STRAT
+    LIMIT -->|retry already used| OUT
+
+    AG -. agent decisions .-> LOG
+    REC -. catalog and ranking events .-> LOG
+    OUT --> REVIEW
+    LOG --> REVIEW
+    H --> REVIEW
+
+    TEST -. verifies .-> REC
+    TEST -. verifies .-> OUT
